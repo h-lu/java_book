@@ -1,0 +1,30 @@
+# 附录：持续学习的资源宝库
+
+> "学无止境。"
+
+技术的世界日新月异，本书是你进入Java全栈开发领域的坚实起点，但真正的成长在于持续不断地学习。以下资源将是你未来成长道路上的宝贵财富。
+
+## 官方文档
+
+*   **Java™ Platform, Standard Edition & Java Development Kit**：[Oracle官方文档](https://docs.oracle.com/en/java/javase/17/docs/api/index.html) - 这是最权威的Java API参考。当你对一个类的具体用法不确定时，这里是第一信息来源。
+*   **Spring Guides**：[Spring官方教程](https://spring.io/guides) - Spring团队提供了大量针对特定场景的、手把手的入门教程，是学习Spring生态的最佳实践。
+*   **Docker Documentation**：[Docker官方文档](https://docs.docker.com/) - 学习Docker最权威、最全面的地方。
+
+## 优质社区与博客
+
+*   **Stack Overflow**：[https://stackoverflow.com/](https://stackoverflow.com/) - 全球最大的程序员问答社区。当你遇到具体的技术难题时，很可能这里已经有了答案。
+*   **Baeldung**：[https://www.baeldung.com/](https://www.baeldung.com/) - 一个专注于Java和Spring生态的高质量技术博客，文章深入浅出，非常实用。
+*   **GitHub**：[https://github.com/](https://github.com/) - 通过阅读优秀开源项目的源代码，是提升最快的方式之一。
+
+## 必读经典书籍
+
+*   **《Effective Java》 by Joshua Bloch** - Java程序员必读的圣经，教你写出更健壮、更高效的Java代码。
+*   **《Clean Code》 by Robert C. Martin** - 软件工程领域的经典之作，它讲述的不仅仅是代码，更是一种职业态度和工程哲学。
+*   **《设计模式：可复用面向对象软件的基础》 by Erich Gamma, et al.** - "四人帮"的经典著作，理解面向对象设计的精髓。
+
+## 在线学习平台
+
+*   **LeetCode**：[https://leetcode.com/](https://leetcode.com/) - 如果你想加强算法和数据结构能力，这里是最好的练习场。
+*   **Coursera / edX**：世界顶级大学的计算机科学课程，可以让你系统地巩固计算机基础知识。
+
+利用好这些资源，并结合你已经掌握的AI协同学习方法，你的技术成长将不可限量。 

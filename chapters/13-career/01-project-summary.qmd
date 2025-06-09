@@ -1,0 +1,76 @@
+## 13.1 为项目“画全貌”：架构复盘与技术总结 {#sec-career-summary}
+
+> “回头看，是为了更好地向前走。”
+
+在开始新的征程之前，让我们花点时间，回顾并梳理我们亲手构建的“IntelliRecommend”项目。在软件开发中，用图表来沟通架构是一种至关重要的能力。现在，我们就来尝试和AI一起，为我们的项目绘制一幅清晰的架构图。
+
+::: {.callout-note title="与AI的对话：绘制项目架构图"}
+**你**：“AI，请帮我用Mermaid的流程图，画出`IntelliRecommend`项目的技术架构。需要体现出：用户端、Docker容器、Spring Boot应用内部的分层（Security, Controller, Service, Repository, H2 DB），以及构建流程（Maven, Dockerfile）这几个关键部分。”
+
+**AI助手**：“当然！这是一个很好的总结方式。我将为你生成一个Mermaid图，它清晰地展示了'构建时'和'运行时'两个阶段，以及应用内部的调用链。”
+:::
+
+### 项目核心功能
+
+我们的“IntelliRecommend”平台，从一个简单的想法出发，最终实现了一个微型内容推荐系统的核心功能链路：
+
+1.  **内容服务**：后端能够通过API提供一个内容列表。
+2.  **前端展现**：用户可以通过一个简单的网页，查看这些内容。
+3.  **安全访问**：API受到了基础的密码保护，确保了安全性。
+4.  **智能推荐**：当查看任意内容时，系统能够推荐相关的其他内容。
+5.  **产品交付**：整个应用被打包成一个标准的Docker容器，具备了在任何地方部署的能力。
+
+### 技术架构图
+
+下面这张图，清晰地展示了我们项目的最终技术架构。这不仅仅是一张图，它是你过去所有努力的浓缩和凭证。
+
+```{mermaid}
+%%| echo: false
+graph TD
+    subgraph "构建时 (Build Time)"
+        direction LR
+        L(Maven pom.xml) -- "定义依赖与打包" --> M[Executable JAR]
+        J(Dockerfile) -- "定义镜像" --> K[Docker Image]
+        M -- "打包进" --> K
+    end
+
+    subgraph "运行时 (Run Time)"
+        subgraph "用户端 (Browser)"
+            A[index.html & JS] -- "Fetch API" --> C{Gateway};
+        end
+
+        subgraph "服务器端 (Docker Container)"
+            C -- "HTTP Request" --> D[Spring Boot App];
+            
+            subgraph D
+                direction LR
+                E[Spring Security] -- "保护" --> F(Controller);
+                F -- "调用" --> G(Service);
+                G -- "调用" --> H(Repository);
+                H -- "JPA" --> I[(H2 In-Memory DB)];
+            end
+        end
+        K -- "运行为容器" --> D
+    end
+```
+
+**架构解读**：
+
+*   **构建时**：在这个阶段，我们准备交付物。`pom.xml`定义了项目如何通过Maven打包成一个可执行的**JAR**文件。而`Dockerfile`则负责将这个JAR包和Java运行环境一起，构建成一个标准的**Docker Image**。
+*   **运行时**：
+    *   **服务器端**：我们的**Docker Image**被运行为一个**Docker Container**。容器内部，**Spring Boot应用**启动。
+    *   **用户端**：用户通过浏览器访问HTML和JavaScript文件。页面内的JS代码使用`fetch`向后端发起API请求。
+    *   **调用链**：请求进入容器后，首先经过**Spring Security**的"安检"。随后到达**Controller**（服务员），Controller将业务逻辑委托给**Service**（厨师长），Service通过**Repository**（采购员）从**H2内存数据库**中存取数据，最终将结果层层返回给用户。
+
+### 你的技术栈
+
+通过这个项目，你已经实践并掌握了一套现代Java全栈开发的核心技术栈：
+
+*   **后端**：Java, Spring Boot, Spring Data JPA, Spring Security
+*   **前端**：HTML, JavaScript (ES6+), fetch API
+*   **数据库**：H2 (内存数据库)
+*   **构建工具**：Maven
+*   **部署**：Docker
+*   **协作**：Git, AI辅助编程
+
+这份技术栈清单，是你简历上的第一块“敲门砖”，也是你未来职业生涯的坚实地基。为你自己感到骄傲吧！ 

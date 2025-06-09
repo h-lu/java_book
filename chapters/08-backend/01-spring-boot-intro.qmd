@@ -1,0 +1,48 @@
+## 8.1 Spring Boot：为项目安装“引擎” {#sec-backend-spring-boot}
+
+> “大道至简。” —— 老子
+
+在前面的章节里，我们已经搭建好了`IntelliRecommend`项目的“空壳子”（Maven项目结构）。但现在，它还只是一个普通的Java项目，无法作为Web服务被访问。要让它真正“活”过来，响应来自网络的请求，我们需要为它安装一个强大的“引擎”。这个引擎，就是 **Spring Boot**。
+
+如果没有Spring Boot，搭建一个Java后端应用需要自己配置服务器、管理成百上千的依赖、处理复杂的XML……这个过程足以劝退90%的新手。Spring Boot的出现，就是为了将我们从这些沉重的“脚手架”工作中解放出来，让我们能专注于业务逻辑本身。
+
+::: {.callout-note title="与AI的对话：Spring vs Spring Boot"}
+
+**你**：AI，我总听到人们说Spring Boot，它到底是什么？和Spring框架是什么关系？
+
+**AI助手**：问得非常好！这是一个关键概念。
+
+*   **Spring框架**：你可以把它想象成一个巨大的、功能极其丰富的“工具箱”。里面有用于处理网页请求的工具、连接数据库的工具、保障安全的工具……应有尽有。但问题是，这个工具箱太大了，光是学会如何从里面挑选合适的工具并把它们组装起来，就需要耗费大量精力。
+*   **Spring Boot**：它不是一个新的框架，而是站在Spring框架这个巨人肩膀上的“智能管家”。它对Spring的工具进行了精心的挑选和预配置，形成了一套“最佳实践套餐”。你不需要再纠结用哪个版本的工具、如何配置它们，Spring Boot都帮你搞定了。
+
+**一言以蔽之：Spring Boot不是重复造轮子，而是帮你把最好的轮子（Spring框架）以最简单、最快捷的方式安装到你的车上。**
+
+:::
+
+### 核心概念提炼
+
+1.  **约定优于配置 (Convention over Configuration)**：这是Spring Boot的哲学核心。它认为，对于大多数场景，都存在一种“最佳配置”。Spring Boot默认就帮你做好了这个配置，你不需要写大量XML，除非有特殊的定制化需求。
+2.  **起步依赖 (Starter Dependencies)**：想开发一个Web应用？只需要在项目中加入`spring-boot-starter-web`这个“起步依赖”，所有相关的库（如Tomcat服务器、Spring MVC等）就自动被引入并配置好了。一切都变得像搭积木一样简单。
+3.  **内嵌服务器 (Embedded Server)**：你不需要在你的电脑上单独安装和配置Tomcat服务器。每个Spring Boot应用都“自带”一个内嵌的服务器。你只需运行Java程序，一个功能完整的Web服务就启动了。
+
+### 动手实践：为项目安装Spring Boot引擎
+
+理论已经足够，现在让我们亲手将`IntelliRecommend`项目改造为一个功能完备的Spring Boot应用。
+
+**与AI协同的步骤：**
+
+1.  **修改`pom.xml`，添加“引擎”和“套件”**：
+    *   **提问1**：“AI，我听说Spring Boot项目通常需要在`pom.xml`中指定一个`parent`来统一管理所有依赖的版本，是这样吗？我应该添加什么？”
+    *   **提问2**：“AI，我想把我的Maven项目改造为一个Spring Boot Web应用，我应该在`<dependencies>`里添加哪个'起步依赖'？”
+    *   根据AI的回答，将`<parent>`代码块和`spring-boot-starter-web`的`<dependency>`代码块，分别添加到你的`pom.xml`文件中。
+
+2.  **创建主应用类，点燃"引擎"**：
+    *   **提问**："AI，请给我一个最简单的Spring Boot主应用类，我应该把它放在哪个包里？"
+    *   **创建文件**：根据AI的建议，在项目的`src/main/java/com/intellirecommend`目录下，创建一个名为`IntelliRecommendApplication.java`的新Java文件。
+    *   **粘贴代码**：将AI生成的代码（包含`@SpringBootApplication`注解和`main`方法的类）完整地粘贴到新创建的文件中。
+
+3.  **启动并验证**：
+    *   在你的AI编程环境中，找到`IntelliRecommendApplication.java`文件，你会看到`main`方法旁边有一个熟悉的"运行"按钮。点击它！
+    *   **观察结果**：切换到"终端"或"控制台"视图，仔细观察输出。你会看到Spring Boot那标志性的艺术字Logo，以及大量的启动日志。在日志的末尾，你会看到一行类似`Tomcat started on port(s): 8080 (http)`的信息。
+
+看到这行信息，就意味着你成功了！你的Java程序已经不再是一个只能在本地运行的普通程序，它已经变身为一个监听着8080端口、时刻准备接收网络请求的强大Web服务器。在下一节，我们就将让它真正地响应一次来自浏览器的访问。 

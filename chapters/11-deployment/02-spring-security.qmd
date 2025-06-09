@@ -1,0 +1,121 @@
+## 11.2 应用的“保安”：初探Spring Security {#sec-deployment-security}
+
+> “信任是好的，但控制是更好的。”
+
+我们的应用已经可以被打包，但它依然是“裸奔”状态。任何知道API地址的人都可以随意增删改查。在企业环境中，这是绝对无法容忍的。我们需要一个强大的“保安”来守卫我们的大门，而**Spring Security**就是Java世界里最顶级的安保系统。
+
+### 第一步：引入依赖，实现“一刀切”保护
+
+我们先来体验一下Spring Security的威力。它最简单的用法，就是通过“自动配置”为所有API端点启用基于用户名和密码的HTTP Basic认证。
+
+::: {.callout-note title="与AI的对话：快速启用安全"}
+
+**你：**
+“AI，我想给我的Spring Boot应用加上最简单的密码保护，让用户访问任何API之前都必须输入用户名和密码，该怎么做？”
+
+**AI助手：**
+“这是一个非常重要的安全加固步骤！集成Spring Security非常简单，你只需要做两件事：
+
+1.  **添加依赖**：在`pom.xml`中添加Spring Security的启动器依赖。
+2.  **配置用户**：在`application.properties`文件中设置一个默认的用户名和密码。
+
+Spring Boot的自动配置能力会为你处理剩下的一切。”
+:::
+
+#### 1. 添加`pom.xml`依赖
+
+请将以下依赖项添加到`pom.xml`文件的`<dependencies>`部分：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+```
+添加后，记得重新加载Maven项目以下载新的依赖。
+
+#### 2. 配置用户名和密码
+
+在 `src/main/resources/application.properties` 文件中，添加以下两行：
+
+```properties
+spring.security.user.name=admin
+spring.security.user.password=password
+```
+这里我们使用`admin`作为用户名。在真实项目中，密码绝不应该这样明文存储。
+
+#### 3. 验证“一刀切”保护
+
+完成了以上两步，**重启**你的Spring Boot应用。
+
+1.  **访问前端页面**：首先，尝试像以前一样访问 `http://localhost:8080/`。你会惊讶地发现，浏览器弹出了一个登录框！这是Spring Security自动生效的结果，它默认保护了所有的HTTP端点。
+2.  **验证API**：在浏览器地址栏直接访问 `http://localhost:8080/api/contents`。同样会弹出登录框，输入正确的用户名密码后，你才能看到JSON数据。
+
+这证明了我们的安全配置已生效，但这种“一刀切”的模式并不符合我们的需求。
+
+### 第二步：精细化配置，保护“写”放行“读”
+
+我们的目标是：任何人都能**读取**内容（GET），但只有管理员才能**修改**内容（POST, PUT, DELETE）。要实现这种精细化的规则，我们需要创建一个Java配置类。
+
+::: {.callout-note title="与AI的对话：自定义安全规则"}
+
+**你：** “AI，我想实现更复杂的安全规则：允许所有GET请求匿名访问，但对POST, PUT, DELETE等其他所有请求都必须进行身份验证。我该怎么做？”
+
+**AI助手**： “这需要我们自定义安全配置。你需要创建一个Java类，并使用`@Configuration`和`@EnableWebSecurity`注解来标记它。然后，在类中定义一个`SecurityFilterChain`类型的Bean，在这里我们可以用链式调用的方式，精确定义每一类请求的安全规则。”
+:::
+
+#### 1. 创建`SecurityConfig.java`
+
+在你的主包（`com.example.intellirecommend`）下，创建一个名为`config`的新包，并在其中创建`SecurityConfig.java`类：
+
+```java
+package com.example.intellirecommend.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(authorize -> authorize
+                // 允许对所有GET请求的匿名访问
+                .requestMatchers(HttpMethod.GET, "/api/contents/**", "/").permitAll()
+                // 对所有其他请求，都需要身份验证
+                .anyRequest().authenticated()
+            )
+            // 启用HTTP Basic认证
+            .httpBasic(Customizer.withDefaults());
+        return http.build();
+    }
+}
+```
+
+#### 2. 清理旧配置
+现在我们有了更强大的Java配置，就不再需要`application.properties`里的简单配置了。请**删除**或**注释掉**`application.properties`中以下两行：
+```properties
+# spring.security.user.name=admin
+# spring.security.user.password=password
+```
+Spring Security在没有找到用户配置时，会自动在后台生成一个默认用户`user`和随机密码（打印在启动日志里），我们正好可以用它来测试。
+
+### 最终验证
+
+**重启**应用。
+
+1.  **验证GET请求**：刷新`http://localhost:8080/`。这一次，页面**应该直接加载成功**，不再弹出登录框！因为我们已经放行了对`/api/contents`的GET请求。
+2.  **验证POST请求**：
+    *   使用Postman或类似的API工具，向`http://localhost:8080/api/contents`发送一个**不带任何认证**的POST请求。你会收到一个`401 Unauthorized`错误。
+    *   在启动日志中找到Spring Security生成的默认密码。
+    *   在API工具中配置HTTP Basic认证，用户名为`user`，密码为日志中找到的随机密码。
+    *   再次发送同一个POST请求，这一次，你会收到`201 Created`的成功响应！
+
+我们通过一个自定义配置类，实现了精细化的API访问控制。这才是企业级安全配置的正确打开方式。 

@@ -1,0 +1,166 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Quarto Book 项目结构规范
+
+## 项目组织结构
+本项目使用Quarto Book格式组织《Java全栈工程师之路》教材内容。
+
+## 目录结构规范
+```
+java-fullstack-book/
+├── _quarto.yml          # Quarto配置文件
+├── index.qmd            # 首页/引言
+├── chapters/            # 章节目录
+│   ├── 01-intro/        # 第1章：与AI的第一次握手
+│   ├── 02-oop/          # 第2章：面向对象的初体验
+│   ├── 03-control/      # 第3章：逻辑与控制
+│   ├── 04-data/         # 第4章：数据管理入门
+│   ├── 05-io/           # 第5章：程序的记忆
+│   ├── 06-concurrency/ # 第6章：并发的魅力
+│   ├── 07-onboarding/   # 第7章：入职与工具链
+│   ├── 08-backend/      # 第8章：后端构建
+│   ├── 09-frontend/     # 第9章：前端展现
+│   ├── 10-deployment/   # 第10章：安全与部署
+│   ├── 11-ai-engine/    # 第11章：AI推荐引擎
+│   └── 12-career/       # 第12章：项目收官
+├── code-examples/       # 代码示例目录
+├── images/             # 图片资源
+├── appendices/         # 附录
+└── _book/             # 构建输出目录
+```
+
+## 文件命名规范
+
+### 章节文件
+- 每章包含主文件：`index.qmd`
+- 小节文件：`01-task.qmd`, `02-concept.qmd` 等
+- 按逻辑顺序编号，便于内容组织
+
+### 代码示例
+- 按章节组织：`code-examples/chapter-01/`
+- 文件名体现功能：`GuessNumberGame.java`
+- 包含完整可运行的示例
+
+## Quarto配置要求
+
+### _quarto.yml 基本结构
+```yaml
+project:
+  type: book
+  title: "Java全栈工程师之路：AI协同与企业级项目实战"
+
+book:
+  title: "Java全栈工程师之路：AI协同与企业级项目实战"
+  author: "作者姓名"
+  chapters:
+    - index.qmd
+    - part: "第一部分：Java基础核心"
+      chapters:
+        - chapters/01-intro/index.qmd
+        - chapters/02-oop/index.qmd
+        # ... 其他基础章节
+    - part: "第二部分：企业级项目实战"
+      chapters:
+        - chapters/07-onboarding/index.qmd
+        # ... 其他实战章节
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    number-sections: true
+    code-fold: false
+    code-tools: true
+```
+
+## 内容编写规范
+
+### Quarto Markdown (.qmd) 格式
+- 使用YAML frontmatter设置章节属性
+- 支持代码块语法高亮
+- 可嵌入交互式元素
+
+### 代码块规范
+```{java}
+//| label: fig-example
+//| fig-cap: "Java示例代码"
+//| echo: true
+//| eval: false
+
+public class HelloWorld {
+    public static void main(String[] args) {
+        System.out.println("Hello, World!");
+    }
+}
+```
+
+### 交叉引用
+- 章节引用：`@sec-intro`
+- 代码清单引用：`@lst-example`
+- 图片引用：`@fig-diagram`
+
+## AI协同编程展示
+
+### 对话框格式
+使用Quarto的callout语法展示AI对话：
+
+```markdown
+::: {.callout-note title="与AI的对话"}
+**学生：** 我不理解为什么需要使用面向对象编程？
+
+**AI助手：** 让我用一个生活中的例子来解释。想象你要设计一个车库管理系统...
+:::
+```
+
+### 代码演进展示
+展示代码的逐步完善过程：
+
+```markdown
+## 第一版：基础实现
+```{java}
+// 初始版本代码
+```
+
+## 第二版：AI建议的改进
+```{java}
+// 改进后的代码
+```
+```
+
+## 构建与发布
+
+### 本地预览
+```bash
+quarto preview
+```
+
+### 构建输出
+```bash
+quarto render
+```
+
+### 发布选项
+- GitHub Pages
+- Netlify
+- 本地PDF输出
+
+## 最佳实践
+
+### 内容组织
+- 每章独立成文件夹，便于管理
+- 代码示例与文档分离但关联
+- 使用consistent的文件命名
+
+### 版本控制
+- 代码示例应可独立运行
+- 使用Git跟踪内容变更
+- 为重要里程碑打标签
+
+### 可维护性
+- 模块化内容结构
+- 清晰的交叉引用
+- 统一的样式和格式

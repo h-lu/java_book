@@ -1,0 +1,103 @@
+## 11.3 部署的“集装箱”：Docker容器化 {#sec-deployment-docker}
+
+> “它在我电脑上是好的啊！” —— 一句被Docker终结的魔咒。
+
+我们已将应用打包成`.jar`文件并添加了安全保护。但在服务器上运行它，仍需确保服务器已正确安装了特定版本的Java。任何环境差异都可能导致问题。**Docker** 的出现，就是为了彻底解决这个问题。
+
+### 理解Docker
+
+*   **镜像 (Image)**：可以想象成一个“应用安装包”，但它包含了**整个应用运行所需的一切**：一个迷你的操作系统、Java运行环境、我们的应用代码及所有配置。它是一个静态的、只读的模板。
+*   **容器 (Container)**：镜像的**运行实例**。就像用一个`Car`类（镜像）创建很多`car`对象（容器）。每个容器都在隔离环境中运行，确保了环境的一致性。
+
+使用Docker部署，就像把应用装进标准化的“集装箱”，无论运到哪个码头（服务器），运行方式都保证一模一样。
+
+### 与AI协同：编写你的第一个Dockerfile
+
+::: {.callout-note title="与AI的对话"}
+**你：** “AI，我理解了Docker的概念。现在如何为我的Spring Boot应用创建一个Dockerfile？另外，`docker run`命令执行后，我的终端就被占用了，如何在后台运行容器？”
+
+**AI助手：** “非常棒的问题！我们需要通过编写一个名为 `Dockerfile` 的'剧本'文件来定义如何构建镜像。
+
+对于后台运行，你只需要在`docker run`命令中加入`-d`（detach）参数即可。
+
+这是一个经典且优化的多阶段构建Dockerfile，我已经帮你把JAR包的文件名参数化了，这样更具健壮性：”
+:::
+
+#### 1. 创建 `Dockerfile`
+在你的项目**根目录**（和`pom.xml`同级）下，创建一个名为 `Dockerfile` 的文件，并写入以下内容：
+
+```dockerfile
+# 定义一个参数，用于存储JAR文件的路径
+ARG JAR_FILE=target/intellirecommend-0.0.1-SNAPSHOT.jar
+
+# --- 构建阶段 (Build Stage) ---
+# 使用一个包含Maven和JDK的官方镜像作为构建环境
+FROM maven:3.8.5-openjdk-17 AS build
+
+# 将工作目录设置为/app
+WORKDIR /app
+
+# 将pom.xml文件复制到容器中，以便下载依赖
+COPY pom.xml .
+
+# 利用Maven的依赖缓存机制，先下载所有依赖
+RUN mvn dependency:go-offline
+
+# 将我们项目的其他所有源代码复制到容器中
+COPY src ./src
+
+# 执行打包命令，跳过测试
+RUN mvn package -DskipTests
+
+
+# --- 运行阶段 (Run Stage) ---
+# 使用一个非常精简的、仅包含Java运行环境的官方镜像
+FROM openjdk:17-jdk-slim
+
+# 将工作目录设置为/app
+WORKDIR /app
+
+# 从"构建阶段"(build)的镜像中，将我们打包好的JAR文件复制到当前镜像中
+COPY --from=build /app/${JAR_FILE} app.jar
+
+# 声明容器计划暴露的端口（文档作用）
+EXPOSE 8080
+
+# 容器启动时要执行的命令
+ENTRYPOINT ["java","-jar","app.jar"]
+```
+
+#### 2. 解读Dockerfile
+这是一个**多阶段构建 (multi-stage build)** 的Dockerfile，是企业级实践的最佳选择：
+
+*   **构建阶段 (`AS build`)**: 我们使用了一个功能齐全但体积较大的`maven`镜像来执行`mvn package`。
+*   **运行阶段**: 我们切换到了一个极度精简的`openjdk...slim`镜像，只从构建阶段复制最终的JAR包。这使得最终生产镜像体积小、分发快、更安全。
+*   `EXPOSE 8080`: 这行代码像一个文档标签，它告诉使用者这个镜像的服务端口是8080。但它本身不做任何事情，真正让外部能访问的是`docker run -p`命令。
+
+### 验证成果 (需要你已安装Docker)
+
+::: {.callout-warning}
+要完成以下步骤，你需要在你的电脑上预先安装 [Docker Desktop](https://www.docker.com/products/docker-desktop/)。
+:::
+
+1.  **构建镜像**：在项目根目录（`Dockerfile`所在的目录）打开终端，执行以下命令：
+    ```bash
+    docker build -t intellirecommend .
+    ```
+    *   `-t intellirecommend`: 给我们的镜像起一个名字`intellirecommend`。
+    *   `.`: 表示Dockerfile在当前目录下。
+
+2.  **运行容器**：镜像构建成功后，执行以下命令来启动一个**后台运行**的容器：
+    ```bash
+    docker run -d -p 8080:8080 --name my-app intellirecommend
+    ```
+    *   `-d`: detach模式，让容器在后台运行。
+    *   `-p 8080:8080`: 将我们**宿主机（电脑）的8080端口**映射到**容器内部的8080端口**。
+    *   `--name my-app`: 给这个正在运行的容器起一个好记的名字`my-app`。
+
+3.  **查看与管理容器**：
+    *   执行 `docker ps`，你会看到名为`my-app`的容器正在运行。
+    *   再次访问 `http://localhost:8080/`，并使用API工具测试受保护的端点，一切如常。
+    *   当你测试完毕，可以执行 `docker stop my-app` 来停止容器。
+
+现在，你的应用正在一个完全隔离的Docker容器中运行！你已经掌握了将任何应用“装箱”并交付的标准化能力。 

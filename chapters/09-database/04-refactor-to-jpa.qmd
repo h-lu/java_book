@@ -1,0 +1,91 @@
+## 9.4 终极改造：让Controller与数据库对话 {#sec-database-refactor-controller}
+
+> “真正的魔法，是将复杂的事物变得简单。”
+
+万事俱备，只欠东风。我们有了JPA实体类，有了Spring Data JPA的Repository接口，现在，是时候回到我们业务逻辑的核心——`ContentController`，并对其进行一次脱胎换骨的升级了。
+
+我们将彻底扔掉那个业余的、数据易失的`ArrayList`，换上我们专业的、具备持久化能力的`ContentRepository`。这将是你从"模拟开发"迈向"真实开发"的关键一步。
+
+::: {.callout-note title="与AI的对话：重构你的Controller"}
+
+**你**：AI，这是我第八章写的`ContentController`代码（将整个类的代码发给AI）。它现在用的是`ArrayList`来存储数据。请帮我重构它，让它改用`ContentRepository`来和数据库进行交互。
+
+**AI助手**：这是一个非常棒的重构任务！这正是Repository模式的威力所在——你的API路径和请求响应格式几乎都不用变，只需要更换底层的数据来源即可。请看重构后的代码：
+
+```java
+package com.intellirecommend;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/contents") // 将公共路径提取到类级别
+public class ContentController {
+
+    // 1. 删除了 ArrayList
+    
+    // 2. 使用 @Autowired 将 Spring 容器中的 ContentRepository 实例注入进来
+    @Autowired
+    private ContentRepository contentRepository;
+
+    // 3. create 方法直接调用 repository.save()
+    @PostMapping
+    public Content createContent(@RequestBody Content content) {
+        return contentRepository.save(content);
+    }
+
+    // 4. findAll 方法直接调用 repository.findAll()
+    @GetMapping
+    public List<Content> getAllContents() {
+        return contentRepository.findAll();
+    }
+
+    // 5. findById 方法调用 repository.findById()，并使用 Optional 处理可能不存在的情况
+    @GetMapping("/{id}")
+    public ResponseEntity<Content> getContentById(@PathVariable Integer id) {
+        Optional<Content> content = contentRepository.findById(id);
+        return content.map(ResponseEntity::ok)
+                      .orElse(ResponseEntity.notFound().build());
+    }
+
+    // ... 此处省略其他方法（update, delete）的类似重构 ...
+}
+```
+
+:::
+
+### 核心概念提炼
+
+1.  **依赖注入 (Dependency Injection, DI)**：这是Spring框架最核心、最基础的概念。你注意到我们只定义了`private ContentRepository contentRepository;`，并用`@Autowired`注解了它，我们**从未写过`contentRepository = new ...()`**这样的代码。这就是DI的魔力：Spring容器会自动创建`ContentRepository`的实例（我们称之为Bean），并在需要时将其"注入"到`ContentController`中。这极大地降低了组件之间的耦合度，是构建大型应用的基础。
+2.  **`Optional<T>`**：在重构后的`getContentById`方法中，`contentRepository.findById(id)`返回的不再是`Content`对象，而是一个`Optional<Content>`。这是Java 8引入的一个非常重要的特性，它是一个"容器"对象，里面可能包含一个非`null`的值，也可能什么都没有。使用`Optional`可以非常优雅地处理查询结果可能为空的情况，从而避免写出繁琐的`if (result != null)`判断，并有效防止臭名昭著的**空指针异常（NullPointerException）**。
+
+### 动手实践：彻底改造你的Controller
+
+现在，让我们亲手完成这次激动人心的重构。
+
+**与AI协同的步骤：**
+
+1.  **打开文件**：在IDE中打开`src/main/java/com/intellirecommend/ContentController.java`。
+2.  **向AI提问**：将你当前`ContentController`的完整Java代码复制给AI，并提问："**请帮我重构这个Controller，让它使用`ContentRepository`来替代`ArrayList`进行数据操作。请使用依赖注入，并用`Optional`来处理查询为空的情况。**"
+3.  **分析并替换代码**：AI会返回一个全新的`ContentController`。请不要直接复制粘贴，而是**仔细对比新旧代码的每一处差异**：
+    *   `private List<Content> ...` 这行被删除了吗？
+    *   增加了`@Autowired private ContentRepository contentRepository;`这行代码吗？
+    *   原来对`ArrayList`进行`add`, `remove`, `find`等操作的地方，是不是都换成了对`contentRepository`的`save`, `deleteById`, `findById`等方法的调用？
+    *   处理单个查询结果的地方，是不是用上了`Optional`？
+4.  **见证奇迹的时刻——数据持久化**：
+    *   **重启**你的Spring Boot应用。
+    *   打开你的API测试工具（如Postman）。
+    *   调用`POST` `/api/contents`，创建**两条**新的文章数据。
+    *   调用`GET` `/api/contents`，确认可以查到刚刚创建的两条数据。
+    *   **最关键的一步**：回到IDE，**停止并再次重启**你的Spring Boot应用。
+    *   应用重启后，**不要做任何其他操作**，直接在API测试工具中，再次调用`GET` `/api/contents`。
+
+这一次，你会发现，之前创建的两条数据**依然存在**！它们没有因为程序的重启而消失。因为，它们已经被`contentRepository.save()`方法，通过JPA，永久地保存到了H2数据库中。
+
+你还可以再次登录H2控制台（`http://localhost:8080/h2-console`），执行`SELECT * FROM CONTENT`，亲眼确认你的数据正静静地躺在数据库表中。
+
+恭喜！你已经掌握了现代Java后端开发中最核心的数据库操作技能。你的应用，终于拥有了真正的“记忆”。 

@@ -1,0 +1,158 @@
+## 12.1 后端的“大脑”：重构到Service层 {#sec-ai-engine-service}
+
+> “混乱的对立面不是秩序，而是清晰。”
+
+在实现新功能前，我们先来做一次专业的“代码整理”，这个过程称为**重构 (Refactoring)**。我们将把`ContentController`中所有与数据库交互的逻辑，都搬到一个新家——`ContentService`里。这是一个典型的、企业级开发中每天都在发生的场景。
+
+**重构的目标**：在不改变应用任何外部行为（API的功能和URL都保持不变）的前提下，优化其内部结构，使其更清晰、更易于维护。
+
+### 与AI协同：执行你的第一次重构
+
+::: {.callout-note title="与AI的对话"}
+**你：** “AI，请指导我完成一次重构。我想创建一个`ContentService`，把`ContentController`里现有的`findAll`, `findById`, `search`, `create`, `update`, `delete`等方法的逻辑，都迁移到这个新的Service里。然后让`ContentController`来调用`ContentService`，而不是直接调用`Repository`。”
+
+**AI助手**：“这是一个非常专业的重构任务，它能极大地提升你代码的质量！我们将分两步走：
+
+1.  **创建并实现`ContentService`**：建立新的业务逻辑层。
+2.  **改造`ContentController`**：让它依赖于新的Service层。
+"
+:::
+
+#### 第一步：创建`ContentService.java`
+
+1.  在`com.example.intellirecommend`包下，创建一个新的子包，名为`service`。
+2.  在这个`service`包里，创建`ContentService.java`类，并写入以下代码。你会发现，这些代码基本就是从`ContentController`中“搬家”过来的。
+
+```java
+package com.example.intellirecommend.service;
+
+import com.example.intellirecommend.model.Content;
+import com.example.intellirecommend.repository.ContentRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+// 1. 使用@Service注解，声明这是一个Service组件
+@Service
+public class ContentService {
+
+    private final ContentRepository contentRepository;
+
+    // 2. 注入Repository，因为Service需要通过它来操作数据库
+    @Autowired
+    public ContentService(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    // 3. 将原Controller中的业务逻辑迁移至此
+    public List<Content> findAll() {
+        return contentRepository.findAll();
+    }
+
+    public Optional<Content> findById(Long id) {
+        return contentRepository.findById(id);
+    }
+
+    public List<Content> search(String keyword) {
+        return contentRepository.findByTitleContaining(keyword);
+    }
+
+    public Content save(Content content) {
+        return contentRepository.save(content);
+    }
+    
+    public void deleteById(Long id) {
+        contentRepository.deleteById(id);
+    }
+}
+```
+
+#### 第二步：改造`ContentController.java`
+
+现在，`ContentController`的角色变得非常纯粹：接收请求、调用Service、返回响应。
+
+```java
+package com.example.intellirecommend.controller;
+
+import com.example.intellirecommend.model.Content;
+import com.example.intellirecommend.service.ContentService; // 1. 导入新的Service
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/contents")
+public class ContentController {
+
+    private final ContentService contentService; // 2. 将依赖从Repository改为Service
+
+    @Autowired
+    public ContentController(ContentService contentService) { // 3. 注入ContentService
+        this.contentService = contentService;
+    }
+
+    @GetMapping
+    public List<Content> getAllContents() {
+        return contentService.findAll(); // 4. 调用Service层的方法
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Content> getContentById(@PathVariable Long id) {
+        return contentService.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/search")
+    public List<Content> searchContents(@RequestParam String keyword) {
+        return contentService.search(keyword); // 调用Service层的方法
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Content createContent(@RequestBody Content content) {
+        return contentService.save(content); // 调用Service层的方法
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Content> updateContent(@PathVariable Long id, @RequestBody Content contentDetails) {
+        return contentService.findById(id)
+                .map(content -> {
+                    content.setTitle(contentDetails.getTitle());
+                    content.setContent(contentDetails.getContent());
+                    content.setContentType(contentDetails.getContentType());
+                    content.setUrl(contentDetails.getUrl());
+                    return ResponseEntity.ok(contentService.save(content));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteContent(@PathVariable Long id) {
+        contentService.deleteById(id); // 调用Service层的方法
+    }
+}
+```
+
+### 验证重构成果
+
+完成以上代码修改后，**重启**你的Spring Boot应用。
+
+现在，请使用Postman或浏览器，**重新测试之前我们开发过的所有API端点**：
+*   GET `/api/contents`
+*   GET `/api/contents/{id}`
+*   GET `/api/contents/search?keyword=...`
+*   POST `/api/contents`
+*   PUT `/api/contents/{id}`
+*   DELETE `/api/contents/{id}`
+*   打开前端页面 `http://localhost:8080/`
+
+你会发现，**所有功能的表现应该和重构前一模一样**！
+
+这就是重构的魅力：应用的外部行为没有任何改变，但其内部代码结构却变得更加清晰、健壮，并且为我们下一步实现复杂的推荐逻辑铺平了道路。 

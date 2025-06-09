@@ -1,0 +1,73 @@
+## 8.3 模拟真实业务：构建内存中的CRUD API {#sec-backend-crud-api}
+
+> “烂程序员关心代码，好程序员关心数据结构及其之间的关系。” —— 林纳斯·托瓦兹
+
+在上一节，我们成功地让服务器“开口说话”了。但一个真正的后端服务，核心任务是**管理数据**。增（Create）、删（Delete）、改（Update）、查（Read），这四种操作，我们简称为**CRUD**，是几乎所有业务系统的基础。
+
+现在，我们将模拟一个真实的文章管理业务，为我们的`IntelliRecommend`项目构建一套完整的、基于内存的CRUD API。虽然我们暂时不用真实的数据库，但这将让你完整地体验企业级API的设计全过程。
+
+### 第一步：定义我们的“业务模型”
+
+在开始写API之前，我们首先要明确我们要管理的数据是什么。在我们的项目中，核心数据就是“文章（Content）”。
+
+**与AI协同的步骤：**
+
+> **向AI提问**：“AI，我需要为我的内容推荐项目创建一个Java类来表示一篇文章。它应该包含ID（Integer类型）、标题（String类型）和内容（String类型）。请帮我生成这个类，并为它加上构造函数、getter和setter方法。”
+
+根据AI的回答，在`com.intellirecommend`包下创建`Content.java`文件，并填入代码。这个类，我们称之为**模型（Model）**或**实体（Entity）**。
+
+### 第二步：创建控制器并用内存模拟数据库
+
+接下来，我们将创建一个新的控制器来专门处理与文章相关的API请求。为了模拟数据库，我们将在控制器内部使用一个`ArrayList`来存储文章数据。
+
+**与AI协同的步骤：**
+
+1.  在`com.intellirecommend`包下创建`ContentController.java`。
+2.  向AI提问：“AI，请帮我在`ContentController`里创建一个`@RestController`，并初始化一个`ArrayList<Content>`来存储文章列表，再预置一两条数据。”
+
+### 第三步：实现CRUD API
+
+现在，我们将逐一实现增删改查四个核心功能。
+
+#### 1. R - 读取（Read）：获取所有文章
+
+> **向AI提问**：“AI，请在`ContentController`中给我添加一个API，路径是`/api/contents`，使用GET请求，它能返回内存中所有的文章列表。”
+
+AI会给你一个被`@GetMapping("/api/contents")`注解的方法，它直接返回之前创建的`ArrayList`。
+
+#### 2. R - 读取（Read）：根据ID获取单篇文章
+
+> **向AI提问**：“AI，我需要一个能根据ID查询单篇文章的API。路径应该是`/api/contents/{id}`，其中`{id}`是一个占位符。请帮我实现它。”
+
+AI会给你一个使用`@GetMapping("/api/contents/{id}")`的方法，并教你使用`@PathVariable`注解来获取URL中的ID值。
+
+#### 3. C - 创建（Create）：新增一篇文章
+
+> **向AI提问**：“AI，我需要一个能新增文章的API。它应该响应POST请求，路径是`/api/contents`。请求的Body里会传来一个JSON格式的文章数据，我该如何接收它并添加到列表中？”
+
+AI会为你介绍`@PostMapping`和`@RequestBody`这两个新的注解。
+
+#### 4. U - 更新（Update）：修改一篇文章
+
+> **向AI提问**：“AI，如何实现一个更新文章的API？它应该响应PUT请求，路径是`/api/contents/{id}`，请求的Body里会传来要更新的文章数据。”
+
+AI会为你介绍`@PutMapping`注解。
+
+#### 5. D - 删除（Delete）：删除一篇文章
+
+> **向AI提问**：“AI，最后，请帮我实现一个能根据ID删除文章的API。它应该响应DELETE请求，路径是`/api/contents/{id}`。”
+
+AI会为你介绍`@DeleteMapping`注解。
+
+### 第四步：使用API测试工具进行验证
+
+我们新增的API（POST, PUT, DELETE）无法直接通过浏览器地址栏进行测试。我们需要一个专业的API测试工具，比如 **Postman** 或VS Code的**Thunder Client**插件。
+
+**动手实践：**
+
+1.  **启动应用**：运行`IntelliRecommendApplication`。
+2.  **测试GET**：在浏览器或API工具中，访问`http://localhost:8080/api/contents`，确认能看到预置的数据。
+3.  **测试POST**：使用API工具，向`http://localhost:8080/api/contents`发送一个POST请求，在Body中选择`JSON`格式，并输入类似`{"id": 3, "title": "新文章", "content": "这是新内容"}`的数据。发送后，再测试一次GET所有文章的接口，看看新文章是否已添加。
+4.  **测试其他接口**：依次使用API工具测试根据ID获取、更新和删除文章的接口，并观察每次操作后，文章列表发生的变化。
+
+完成这一整套CRUD流程，你对后端API开发的理解将提升到一个全新的高度。 

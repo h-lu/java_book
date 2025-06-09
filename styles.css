@@ -1,0 +1,34 @@
+:root {
+  --mermaid-theme-neutral-background: #ffffff;
+  --mermaid-theme-neutral-text-color: #000000;
+  --mermaid-theme-neutral-line-color: #333333;
+}
+
+.mermaid {
+  background-color: var(--mermaid-theme-neutral-background) !important;
+}
+
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node ellipse,
+.mermaid .node polygon {
+  fill: var(--mermaid-theme-neutral-background) !important;
+  stroke: var(--mermaid-theme-neutral-line-color) !important;
+}
+
+.mermaid .node text {
+  fill: var(--mermaid-theme-neutral-text-color) !important;
+}
+
+.mermaid .edgePaths .path {
+  stroke: var(--mermaid-theme-neutral-line-color) !important;
+}
+
+.mermaid .cluster rect {
+  fill: var(--mermaid-theme-neutral-background) !important;
+  stroke: var(--mermaid-theme-neutral-line-color) !important;
+}
+
+.mermaid .cluster text {
+  fill: var(--mermaid-theme-neutral-text-color) !important;
+} 

@@ -1,0 +1,57 @@
+## 12.3 连接“大脑”与“世界”：暴露推荐API {#sec-ai-engine-api}
+
+> “再好的戏，也需要一个舞台。”
+
+我们的`ContentService`已经会做一手好菜（推荐算法），但它还待在后厨里。我们需要“服务员”（`ContentController`）将这道菜端出去，呈现给顾客。
+
+这意味着，我们需要在`ContentController`中创建一个新的API端点，它会调用`ContentService`的推荐服务，并把推荐结果作为HTTP响应返回。
+
+### 与AI协同：创建新的Controller方法
+
+::: {.callout-note title="与AI的对话"}
+**你：**
+“AI，我的`ContentService`中已经有了一个`getRecommendations(Long contentId)`方法。请帮我在`ContentController`里创建一个新的API端点来调用它。这个API应该是GET请求，路径为`/api/recommendations`，并通过请求参数`?contentId={id}`来接收原文的ID。”
+
+**AI助手：**
+“非常好的设计！使用请求参数（Request Parameter）来传递ID非常适合这种查询场景。我们将这样做：
+
+1.  在`ContentController`中创建一个新的`getRecommendations`方法。
+2.  使用`@GetMapping`注解来映射到`/api/recommendations`路径。
+3.  这个方法需要从URL的查询字符串中捕获`contentId`，所以我们要用到`@RequestParam`注解。”
+:::
+
+请将以下方法，添加到你已经重构好的`ContentController.java`中：
+
+```java
+// ... in ContentController.java
+
+    // ... 现有的CRUD API端点 ...
+
+    @GetMapping("/recommendations")
+    public List<Content> getRecommendations(@RequestParam Long contentId) {
+        return contentService.getRecommendations(contentId);
+    }
+```
+*请注意：我们将这个端点放在`/api/recommendations`，而不是作为`/api/contents`的子路径，这使得推荐服务在未来可以更独立地演进。*
+
+### 解读Controller新代码与`@RequestParam`
+
+*   **`@GetMapping("/recommendations")`**: 将此方法映射到HTTP GET请求 `.../api/recommendations`。
+*   **`@RequestParam Long contentId`**:
+    *   **作用**：这个注解告诉Spring，请从HTTP请求的**查询参数 (Query Parameters)** 中，寻找一个名为`contentId`的参数，并将其值赋给方法的`contentId`变量。
+    *   **与`@PathVariable`的区别**：这是你需要掌握的重点。
+        *   `@PathVariable`：用于提取**路径中**的变量，如 `/contents/{id}`。URL本身是变化的。
+        *   `@RequestParam`：用于提取**查询字符串中**的键值对，如 `/recommendations?contentId=1`。URL路径是固定的，通过`?`后的参数来传递信息。
+*   **调用Service层**: Controller再次扮演了“调度员”的角色，简单地调用了`contentService.getRecommendations(contentId)`，将任务完全委托。
+
+### 验证成果
+
+1.  **重启**你的Spring Boot应用。
+2.  确保你的数据库中有一些相同`contentType`的内容（比如多个“技术文章”）。
+3.  打开浏览器或API测试工具（如Postman），访问一个新的URL：
+    `http://localhost:8080/api/recommendations?contentId=1`
+    (假设ID为1的内容存在，并且有其他同类型的内容)
+
+如果一切顺利，你将看到一个JSON数组，其中包含了除ID为1之外的所有同类型文章。
+
+我们成功地将业务逻辑层和服务暴露层连接了起来，构建了一个完整、清晰、可维护的后端功能。一个真正的“智能推荐”API已经诞生！ 

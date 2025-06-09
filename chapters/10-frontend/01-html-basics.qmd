@@ -1,0 +1,63 @@
+## 10.1 网页的“骨架”：搭建前端界面 {#sec-frontend-html}
+
+> “万丈高楼平地起。”
+
+一切绚丽网页的背后，其最根本的基石都是**HTML (HyperText Markup Language, 超文本标记语言)**。它负责定义网页的**结构**和**内容**。你可以把它想象成建筑的“钢筋骨架”，它决定了哪里是标题，哪里是输入框，哪里是按钮。
+
+在Spring Boot项目中，所有静态资源（包括HTML、CSS、JavaScript文件）都约定俗成地放在`src/main/resources/static`目录下。Spring Boot会自动将这个目录下的文件对外暴露。
+
+::: {.callout-note title="与AI的对话：创建你的前端界面"}
+
+**你**：AI，我想为我的内容搜索服务创建一个HTML界面。它需要一个大标题、一个文本输入框让用户输入关键词、一个搜索按钮，以及一个用于展示搜索结果的列表区域。请帮我生成这个基础的HTML代码。
+
+**AI助手**：没问题！一个清晰的HTML结构是良好交互的开始。我们将使用最基础的HTML标签来搭建这个界面。
+
+1.  请在项目的 `src/main/resources/static` 目录下，创建一个名为 `index.html` 的文件。在`static`目录下的`index.html`是一个特殊文件，当你访问网站的根路径（比如 `http://localhost:8080/`）时，Spring Boot会默认展示它。
+2.  然后，请将以下HTML骨架代码写入`index.html`文件中：
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>IntelliRecommend 内容平台</title>
+</head>
+<body>
+
+    <h1>IntelliRecommend 内容搜索</h1>
+
+    <div>
+        <input type="text" id="search-input" placeholder="输入关键词...">
+        <button id="search-button">搜索</button>
+    </div>
+
+    <hr>
+
+    <h2>搜索结果：</h2>
+    <ul id="content-list">
+        <!-- 我们将用JavaScript把从API获取的内容动态地填充到这里 -->
+    </ul>
+
+</body>
+</html>
+```
+
+:::
+
+### 核心概念提炼：解读HTML骨架
+
+*   **`<h1>`, `<h2>`**: 标题标签（Heading），数字越小，级别越高，字体也越大。
+*   **`<div>`**: 一个通用的“容器”块 (Division)，我们用它来组织输入框和按钮，方便后续进行整体样式调整。
+*   **`<input type="text">`**: 创建一个单行文本输入框。`placeholder`属性定义了输入框为空时显示的提示文字。
+*   **`<button>`**: 创建一个可点击的按钮。
+*   **`id`属性**: 我们为输入框、按钮和列表都指定了一个唯一的`id`（如`search-input`）。这个ID就像每个标签的“身份证号”，后续的JavaScript代码将通过这个ID来精确地找到并操作它们。
+*   **`<hr>`**: 创建一条水平分割线（Horizontal Rule）。
+*   **`<ul>`**: 创建一个无序列表（Unordered List），我们准备用它来展示一条条的搜索结果。
+
+### 动手实践：验证你的第一个网页
+
+现在，请**重启**你的Spring Boot后端服务。然后，打开浏览器，访问 `http://localhost:8080/` (注意，这次后面没有API路径了)。
+
+如果一切顺利，你将看到一个非常简洁但结构清晰的页面，上面有一个大标题、一个输入框、一个搜索按钮和一条分割线。
+
+这虽然只是一个无法交互的静态页面，但它意义重大：你已经成功地让你的Java后端应用具备了提供Web页面的能力，并为我们接下来的前后端交互，搭建好了完美的“舞台”。 

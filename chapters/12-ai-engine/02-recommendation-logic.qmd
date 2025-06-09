@@ -1,0 +1,82 @@
+## 12.2 推荐的“配方”：实现业务逻辑 {#sec-ai-engine-logic}
+
+> “简单是最终的复杂。” —— 列奥纳多·达·芬奇
+
+现在，我们的“代码厨房”(`ContentService`)已经整理得井井有条，是时候开始烹饪我们的第一道“智能大餐”了。我们的推荐规则非常清晰：**当用户查看ID为`contentId`的内容时，找到该内容的类型，然后返回数据库中所有其他相同类型的内容。**
+
+这个逻辑，将作为`ContentService`中的一个新方法来实现。
+
+### 与AI协同：编写推荐算法
+
+::: {.callout-note title="与AI的对话"}
+**你：**
+“AI，请帮我修改`ContentService.java`，在里面添加一个名为`getRecommendations`的新方法。它需要接收一个`contentId`作为参数，然后实现我们之前定义的那个基于内容类型的推荐逻辑。”
+
+**AI助手：**
+“没问题！这是一个典型的业务逻辑实现，我们可以分步完成：
+
+1.  首先，根据传入的`contentId`，从数据库中查出原始的内容对象。我们需要优雅地处理‘内容不存在’的边界情况。
+2.  然后，从这个对象中获取它的`contentType`。
+3.  接着，查询数据库，找出所有`contentType`与之上相同的全部内容。
+4.  最后，从结果中排除掉原始的那一篇内容（我们不想给自己推荐自己），然后返回最终的列表。”
+:::
+
+#### 第一步：在`ContentService`中添加方法
+请将以下`getRecommendations`方法的代码，添加到你现有的`ContentService.java`类中：
+
+```java
+// ... in ContentService.java ...
+
+    public List<Content> getRecommendations(Long contentId) {
+        // 1. 根据ID查找原始内容，返回一个Optional<Content>
+        Optional<Content> originalContentOpt = contentRepository.findById(contentId);
+
+        // 2. 如果原始内容不存在，直接返回一个空列表，推荐无从谈起
+        if (originalContentOpt.isEmpty()) {
+            return List.of(); 
+        }
+
+        // 3. 如果存在，获取内容对象和它的类型
+        Content originalContent = originalContentOpt.get();
+        String contentType = originalContent.getContentType();
+
+        // 4. 查询所有相同类型的内容 (我们将很快在Repository中定义这个新方法)
+        List<Content> allContentOfType = contentRepository.findByContentType(contentType);
+
+        // 5. 使用Java Stream API，从结果中过滤掉原始文章本身
+        return allContentOfType.stream()
+                .filter(content -> !content.getId().equals(contentId))
+                .collect(Collectors.toList());
+    }
+```
+
+#### 第二步：在Repository中定义新查询方法
+上面的代码用到了`findByContentType`方法，但我们的`ContentRepository`里还没有它。现在我们来定义它。
+
+::: {.callout-note title="与AI的对话"}
+**你：**
+“AI，`getRecommendations`方法需要一个`findByContentType`方法，请帮我在`ContentRepository`接口中加上它。”
+
+**AI助手：**
+“当然。你只需要在`ContentRepository`接口中加上这个方法的声明即可，Spring Data JPA的‘方法名查询’魔法会搞定剩下的。”
+:::
+
+请在`ContentRepository.java`接口中，添加以下方法声明：
+
+```java
+// ... in ContentRepository.java ...
+public interface ContentRepository extends JpaRepository<Content, Long> {
+    List<Content> findByTitleContaining(String keyword);
+
+    // 根据contentType查找内容列表
+    List<Content> findByContentType(String contentType);
+}
+```
+
+### 解读业务逻辑与JPA魔法
+
+*   **`Optional<T>`**: 这是Java 8引入的一个非常好的容器类，它能优雅地处理可能为`null`的情况，避免了臭名昭著的`NullPointerException`。我们通过`.isEmpty()`来判断查询结果是否为空。
+*   **`findByContentType(String contentType)`**: **这就是JPA的魔法！** 我们并没有为这个方法写一行SQL实现。我们只是在`JpaRepository`的子接口中，严格按照`findBy<属性名>`的格式定义了一个方法，Spring Data JPA就会在运行时自动为我们生成实现该查询的代码！这个特性极大地提升了开发效率。
+*   **Stream API**: 这是Java Stream API的经典用法 (`.stream().filter().collect()`)，它让我们能以一种声明式、函数式的风格来处理集合，代码更简洁、更易读。
+
+我们的推荐算法核心已经完成！这就是现代Java框架的威力。下一步，就是创建一个新的API端点，将这个强大的业务逻辑暴露给前端。 

@@ -1,0 +1,66 @@
+## 8.2 你的第一个API："Hello, IntelliRecommend!" {#sec-backend-first-api}
+
+> “无需多言，给我看代码” —— 林纳斯·托瓦兹
+
+在上一节，我们的服务器已经成功启动并监听在8080端口。但它现在还是一个“空厨房”，没有任何“出菜口”（API端点）。这意味着外界还无法与它进行任何有效的交互。现在，我们就来为它开设第一个服务窗口，让它能够真正地响应来自浏览器的请求。
+
+我们的第一个任务是：创建一个`/api/hello`的API端点，当用户访问`http://localhost:8080/api/hello`时，页面能返回一句简单的问候语。
+
+::: {.callout-note title="与AI的对话：创建你的第一个“服务窗口”"}
+
+**你**：AI，我的服务器已经跑起来了。现在我该在哪里写代码，来创建一个`/api/hello`的服务窗口呢？
+
+**AI助手**：非常棒！标准的做法是创建一个新的Java类来专门负责处理Web请求。我们通常会把它叫做`HelloController`。
+
+1.  在`com.intellirecommend`这个包下，创建一个新的Java类，命名为 `HelloController.java`。
+2.  然后，我们需要用两个关键的**注解（Annotation）**来告诉Spring Boot这个类的用途。注解是Java中一种特殊的“标签”，以`@`开头，它能赋予代码额外的功能。
+
+请把下面的代码片段交给你的AI编辑器，让它帮你写入`HelloController.java`文件中：
+
+```java
+package com.intellirecommend;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+// @RestController 标签告诉Spring Boot:
+// "这个类是一个控制器，它的所有方法返回的都是数据（比如JSON或纯文本），而不是网页视图。"
+@RestController
+public class HelloController {
+
+    // @GetMapping("/api/hello") 标签告诉Spring Boot:
+    // "如果有人用GET方法访问'/api/hello'这个地址，就请执行下面的 hello 方法。"
+    @GetMapping("/api/hello")
+    public String hello() {
+        return "Hello, IntelliRecommend!";
+    }
+}
+```
+你看，我们用声明式的注解，就清晰地定义了一个服务窗口的行为。
+
+:::
+
+### 核心概念提炼
+
+1.  **控制器 (`@RestController`)**: 这是一个特殊的Java类，被`@RestController`注解标记后，它就成为了Spring Boot应用中专门负责接收外部HTTP请求的“调度中心”。
+2.  **请求映射 (`@GetMapping`)**: 这是一个方法级别的注解，它像一个“路标”，将一个具体的URL路径（如`/api/hello`）和一种HTTP请求方法（GET）与一个Java方法（如`hello()`）绑定起来。
+3.  **API端点 (Endpoint)**: 一个可供外部访问的具体URL，是服务对外暴露的“窗口”。一个控制器类中通常包含多个API端点。
+
+
+### 动手实践：开放第一个服务窗口
+
+现在，最激动人心的时刻到了。
+
+1.  **重启服务**：回到`IntelliRecommendApplication.java`，停止正在运行的应用，然后再次点击“运行”按钮，重新启动它。
+    > **注意**：在Java这样的编译型语言中，每次修改完`.java`源代码后，通常都需要重启应用程序才能让改动生效。
+
+2.  **验证结果**：
+    *   看到控制台再次显示`Tomcat started on port(s): 8080`后，打开你的网络浏览器。
+    *   在地址栏输入：`http://localhost:8080/api/hello`
+    *   按下回车，你将在页面上看到那句我们设定的问候：**Hello, IntelliRecommend!**
+
+3.  **举一反三**：
+    *   尝试修改`hello()`方法返回的字符串，改成“我的第一个API，成功！”，然后**重启**应用，刷新浏览器看看变化。
+    *   向AI提问：“**我想在`HelloController.java`里再创建一个API，路径是`/api/me`，让它返回我的名字，该怎么做？**” 按照AI的引导，在同一个类中增加一个新的、被`@GetMapping("/api/me")`注解的方法。亲手实现它，并通过访问`http://localhost:8080/api/me`来验证。
+
+恭喜！你已经完成了从0到1的突破，你的后端工程师生涯，从这个“Hello, World”式的API正式开始了。 

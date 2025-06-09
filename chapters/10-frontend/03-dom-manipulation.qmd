@@ -1,0 +1,84 @@
+## 10.3 渲染到“画布”：动态更新前端界面 {#sec-frontend-dom}
+
+> “所见即所得。”
+
+在上一节，我们成功地在点击按钮后，从后端获取了数据，但它还静静地躺在浏览器的“控制台”里。用户是看不到的。要完成这最后一步，我们需要将这些JSON数据**渲染 (Render)** 到HTML页面上。
+
+这个过程，在前端开发中被称为**DOM操作 (DOM Manipulation)**。我们将使用JavaScript来找到页面上那个`<ul>`列表，然后根据获取到的数据，动态地创建`<li>`元素填充进去。
+
+::: {.callout-note title="与AI的对话：将数据显示在页面上"}
+
+**你**：AI，这是我上一节写的JavaScript代码（将上一节完整的script代码块发给AI）。它现在只把结果打印在控制台。请帮我修改它，让它能将返回的`contents`数组，动态地创建成一个个`<li>`元素，并显示在ID为`content-list`的`<ul>`里。
+
+**AI助手**：太棒了，我们来到了最激动人心的一步！为了让代码更清晰，我建议我们创建一个专门负责渲染的函数`renderContents`。然后在`fetch`成功后，调用这个函数即可。
+
+请看，我将如何帮你组织完整的`<script>`代码：
+
+```javascript
+// 1. 将渲染逻辑封装成一个独立的函数
+function renderContents(contents) {
+    const contentList = document.getElementById('content-list');
+    
+    // 在显示新结果前，先清空上一次的内容
+    contentList.innerHTML = '';
+
+    if (!contents || contents.length === 0) {
+        contentList.innerHTML = '<li>未找到相关内容</li>';
+        return;
+    }
+
+    // 使用map和模板字符串，为每个content对象创建一个<li>字符串
+    const contentItems = contents.map(content => {
+        return `<li><strong>${content.title}:</strong> ${content.content}</li>`;
+    }).join('');
+
+    contentList.innerHTML = contentItems;
+}
+
+// 2. 在事件监听器中，获取数据后调用渲染函数
+const searchButton = document.getElementById('search-button');
+const searchInput = document.getElementById('search-input');
+
+searchButton.addEventListener('click', async () => {
+    const keyword = searchInput.value;
+    
+    try {
+        const response = await fetch(`/api/contents/search?keyword=${keyword}`);
+        const contents = await response.json();
+        
+        // 数据获取成功！调用渲染函数把它显示出来！
+        renderContents(contents);
+
+    } catch (error) {
+        console.error('获取内容失败:', error);
+        // 如果出错，也在页面上给用户一个反馈
+        const contentList = document.getElementById('content-list');
+        contentList.innerHTML = '<li>加载内容失败，请检查后端服务或网络。</li>';
+    }
+});
+```
+将渲染逻辑分离出来，是一个非常好的编程习惯，它让你的代码职责更分明。
+
+:::
+
+### 核心概念提炼
+
+*   **`document.getElementById('...')`**: `document`是DOM的根对象，这个方法能精确地找到HTML中拥有特定`id`的那个元素，是所有DOM操作的起点。
+*   **`.innerHTML`**: 元素的一个可读写属性。读取它，可以获取该元素内部的所有HTML内容；写入它（给它赋值一个HTML字符串），则可以完全替换掉它内部的所有内容。这是动态更新页面的最核心操作。
+*   **`.map()`与`.join('')`**: 这是操作JavaScript数组的强大组合。`.map()`负责将一个数据数组（比如我们的`contents`）“映射”成一个新的字符串数组（每个字符串是一个`<li>...</li>`）。`.join('')`则负责将这个字符串数组无缝地拼接成一个单一的、巨大的HTML字符串，可以直接赋给`.innerHTML`。
+*   **函数封装**: 我们将渲染逻辑封装在`renderContents`函数中，这使得主流程代码（事件监听器）更清晰，并且这个渲染函数未来也可以被其他地方复用。
+
+### 动手实践：见证最终成果
+
+1.  找到`index.html`中上一节添加的`<script>`标签。
+2.  用上面AI对话中提供的**完整的、新的**JavaScript代码，**完全替换**掉旧的`<script>`标签内的所有内容。
+3.  **重启**你的Spring Boot应用，并刷新浏览器中的`http://localhost:8080/`页面。
+
+这一次，见证奇迹的时刻到了！
+
+1.  在输入框中输入你知道存在的关键词，然后点击“搜索”。
+2.  页面上那个原本空白的“搜索结果”区域，现在立刻出现了根据你的搜索词动态生成的、格式清晰的内容列表！
+3.  尝试搜索一个不存在的关键词，列表会提示“未找到相关内容”。
+4.  尝试停止你的Java后端服务，再点击搜索，列表会提示“加载内容失败...”。
+
+恭喜你！你已经走完了从后端数据到前端展现的完整链路。你不仅是一个Java后端工程师，现在更拥有了**全栈（Full-Stack）**的开发视角和基础实践能力！ 

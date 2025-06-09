@@ -1,0 +1,115 @@
+## 5.3 数据输入：从文件读取历史日记 {#sec-io-reading}
+
+> “我写故我在。” —— 罗兰·巴特。
+
+现在，我们将让程序“读”，以证明它“记住了”。
+
+我们已经成功地将日记写入了`diary.txt`文件。但“电子日记本”的功能只完成了一半。一个合格的日记本，必须能在每次打开时，让我们看到所有过去记录的内容。
+
+这意味着，我们需要在程序启动时，立刻执行上一节的逆操作：**从文件中读取数据，并显示到屏幕上**。
+
+::: {.callout-note title="与AI的对话：让Scanner读取文件"}
+
+**你**：AI，我怎么才能在程序一启动时，就把 `diary.txt` 里的所有日记都读出来，并一行行地打印在控制台？
+
+**AI助手**：好问题！说起读取输入，你会不会想起我们的一个“老朋友”？
+
+**你**：`Scanner`？它不是用来读取键盘输入的吗？
+
+**AI助手**：正是它！`Scanner`是一个非常强大的工具，它的设计初衷就是“扫描任何输入源”。键盘（`System.in`）是它的服务对象之一，**文件**同样是！我们只需要在创建`Scanner`时，告诉它去扫描一个文件而不是键盘就行了。
+
+**你**：那具体该怎么写？
+
+**AI助手**：你需要两样东西：一个`File`对象，来代表你要读取的`diary.txt`；以及一个`while`循环，来不断地读取文件的每一行，直到文件末尾。
+
+```java
+// 初步的、不完整的代码示例
+import java.io.File;
+import java.util.Scanner;
+
+// ...
+// 1. 创建一个File对象，作为文件的“遥控器”
+File diaryFile = new File("diary.txt");
+
+// 2. 将Scanner连接到这个文件上
+Scanner fileScanner = new Scanner(diaryFile);
+
+// 3. 使用while循环，只要文件还有下一行...
+while (fileScanner.hasNextLine()) {
+    // ...就读取那一行...
+    String line = fileScanner.nextLine();
+    // ...并打印出来
+    System.out.println(line);
+}
+fileScanner.close(); // 同样，用完要关闭
+```
+
+**你**：太神奇了！不过，我的编辑器又在`new Scanner(diaryFile)`下面画了红线，提示“未处理的异常：`java.io.FileNotFoundException`”。
+
+**AI助手**：完全正确！Java的“安全检查”再次上线了。它在提醒你：你要读的这个`diary.txt`，可能**根本不存在**！比如第一次运行程序时。因此，你必须再次使用`try-catch`来处理这种潜在的“文件未找到”异常。
+
+:::
+
+### 核心概念：健壮的文件读取
+
+基于AI的建议，我们可以构建出一段非常标准且健壮的文件读取代码。
+
+```java
+import java.io.File;
+import java.io.FileNotFoundException; // 导入特定的异常类
+import java.util.Scanner;
+
+public class DiaryReader {
+    public static void main(String[] args) {
+        System.out.println("---过往的日记---");
+        try {
+            File diaryFile = new File("diary.txt");
+            Scanner fileScanner = new Scanner(diaryFile);
+
+            while (fileScanner.hasNextLine()) {
+                String diaryEntry = fileScanner.nextLine();
+                System.out.println(diaryEntry);
+            }
+            fileScanner.close();
+
+        } catch (FileNotFoundException e) {
+            // 如果文件不存在，catch块会捕捉到异常
+            // 我们可以给用户一个友好的提示，而不是让程序崩溃
+            System.out.println("（还没有历史日记哦，开始写下第一篇吧！）");
+        }
+        System.out.println("---开始新的篇章---");
+    }
+}
+```
+
+这段代码包含了几个核心知识点：
+
+1.  **`new File("diary.txt")`**：我们创建了一个`File`类的实例。可以把它理解为程序世界中，对硬盘上那个`diary.txt`物理文件的一个引用，或者叫“遥控器”。我们通过操作这个`File`对象来间接操作真实的文件。
+
+2.  **`new Scanner(File)`**：我们再次看到了`Scanner`的强大。通过传入不同的“输入源”（之前是`System.in`，现在是`File`对象），它可以灵活地切换其扫描目标。
+
+3.  **`while (scanner.hasNextLine())`**：这是读取文本文件的**黄金搭档**。
+    *   `hasNextLine()` 方法会像一个探测器，检查文件里是否还有尚未被读取的下一行。如果有，它返回`true`，循环继续。如果已经读到文件末尾，它返回`false`，循环优雅地结束。
+    *   `nextLine()` 方法则负责实际地读取下一整行的内容，并将其作为字符串返回。
+    *   这个组合确保了无论文件是空的、有一行，还是有一万行，我们的程序都能正确处理，不多读也不少读。
+
+4.  **`FileNotFoundException`**：这是`IOException`的一个更具体的“子异常”。专门用来表示“文件不存在”这种错误。在`catch`块里捕捉它，可以让我们的程序在第一次运行时（此时`diary.txt`还不存在）表现得非常友好，而不是抛出一个吓人的红色错误。
+
+### 动手实践
+
+现在，将我们新学的“读”能力，和上一节的“写”能力整合起来，打造一个完整的“电子日记本”！
+
+**目标**：
+修改你的`MyDiary.java`，使其满足我们最初定义的所有功能。
+
+**与AI协同的步骤**：
+
+1.  **规划结构**：你的`main`方法现在应该有清晰的两部分：读取部分和写入部分。
+2.  **实现读取**：向AI提问：“请帮我在程序的开头，加入读取`diary.txt`文件的逻辑。我希望使用`Scanner`和`while`循环，并且能用`try-catch`处理`FileNotFoundException`，如果文件不存在，就打印一条提示信息。”
+3.  **实现写入**：保留你上一节写的写入逻辑。它应该在读取逻辑**之后**执行。
+4.  **运行与验证**：
+    *   **第一次运行**：程序应该提示“没有历史日记”，然后等待你输入。输入一行后程序结束。检查`diary.txt`文件已创建且内容正确。
+    *   **第二次运行**：程序应该首先打印出你上次输入的那行日记，然后再提示你输入新的日记。输入后，检查`diary.txt`文件，它现在应该包含了两行日记。
+    *   **反复运行**：验证每次都能正确读出所有历史记录，并追加新的记录。
+
+完成了这个整合，你就拥有了一个真正具备持久化记忆能力的应用。但关于异常处理，还有更多值得我们深入探讨的细节，这将在下一节展开。

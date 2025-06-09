@@ -1,0 +1,83 @@
+## 10.2 网页的“神经”：用JS响应事件与获取数据 {#sec-frontend-js-fetch}
+
+> “连接是所有事物的本质。”
+
+如果HTML是网页的“骨架”，那么**JavaScript**就是网页的“血液”和“神经”。它是一种编程语言，运行在用户的浏览器中，能让静态的网页“动”起来，响应用户的操作（如点击、输入），并与服务器进行数据通信。
+
+在上一节，我们的页面上有一个输入框和一个按钮，但它们都是“死”的。本节，我们将用JavaScript赋予它们生命。
+
+### 第一步：让按钮“活”起来
+
+我们首先要解决的问题是：如何让程序知道用户**点击**了那个搜索按钮？
+
+::: {.callout-note title="与AI的对话：监听用户事件"}
+
+**你**：AI，我的HTML页面上有一个ID是`search-button`的按钮，如何用JavaScript代码知道用户点击了它，并执行一些操作，比如在控制台打印一句话？
+
+**AI助手**：非常好的问题！这需要两步：首先“找到”那个按钮，然后给它“绑定一个点击事件监听器”。
+
+```javascript
+// 1. 通过ID找到HTML中的按钮元素
+const searchButton = document.getElementById('search-button');
+
+// 2. 为这个按钮添加一个点击事件的监听器
+searchButton.addEventListener('click', () => {
+    // 当按钮被点击时，这里的代码就会被执行
+    console.log('按钮被点击了！');
+});
+```
+`document.getElementById()`是JavaScript与HTML文档交互的最基本方式，而`addEventListener`则是所有交互式网页的核心。
+:::
+
+### 第二步：在“点击”时获取API数据
+
+现在我们能“抓住”用户的点击动作了。下一步就是在用户点击时，获取输入框的值，并去调用我们后端的搜索API。
+
+::: {.callout-note title="与AI的对话：发起Fetch请求"}
+
+**你**：太棒了！现在请帮我把代码整合一下：当用户点击按钮时，获取ID为`search-input`的输入框的值，然后以这个值为关键词，调用后端的`/api/contents/search`接口，并把返回的JSON数据打印在控制台。
+
+**AI助手**：没问题，这是前后端联动的关键一步。我们将把`fetch`调用写在事件监听的回调函数里。
+
+```javascript
+// 将所有代码放在一个<script>标签里，置于</body>前
+const searchButton = document.getElementById('search-button');
+const searchInput = document.getElementById('search-input');
+
+searchButton.addEventListener('click', async () => {
+    const keyword = searchInput.value;
+    console.log(`准备搜索关键词: ${keyword}`);
+
+    // 使用fetch向我们的后端API发送GET请求
+    // 注意我们如何用模板字符串来动态拼接URL
+    try {
+        const response = await fetch(`/api/contents/search?keyword=${keyword}`);
+        const contents = await response.json();
+        
+        console.log('成功从后端获取到数据:', contents);
+    } catch (error) {
+        console.error('获取内容失败:', error);
+    }
+});
+```
+:::
+
+### 核心概念提炼
+*   **DOM (文档对象模型)**：浏览器将HTML文档解析成一个树状结构，JavaScript可以通过`document`对象来访问和操作这个结构中的任何元素（节点）。`document.getElementById()`就是最常用的一个操作。
+*   **事件 (Event)**：用户在网页上的各种操作，如`click`（点击）、`mouseover`（鼠标悬停）、`keydown`（按下键盘）等。
+*   **`addEventListener()`**：为一个HTML元素绑定一个“监听器”，当特定事件发生时，就执行一个指定的回调函数（Callback Function）。
+*   **`fetch` API**：浏览器提供的、用于发起网络请求的现代接口。它可以让我们在不刷新整个页面的情况下，与后端API进行数据交换，是实现**AJAX (Asynchronous JavaScript and XML)**的核心技术。
+*   **`async/await`**: 现代JavaScript处理**异步**操作的优雅方式。网络请求是典型的异步操作，`await`能让我们像写同步代码一样，等待`fetch`请求返回结果。
+
+### 动手实践：实现前后端的首次“握手”
+
+1.  在`index.html`文件的`</body>`标签**正上方**，添加一对`<script>`标签。
+2.  将上面第二段AI对话中完整的JavaScript代码，复制并粘贴到`<script>`标签之间。
+3.  **重启**你的Spring Boot应用，并刷新浏览器中的`http://localhost:8080/`页面。
+4.  **右键**点击页面，选择“**检查 (Inspect)**”，打开**开发者工具**，并切换到“**控制台 (Console)**”标签页。
+5.  在网页的输入框中，输入一个你知道数据库里存在的关键词（例如“Java”）。
+6.  点击“**搜索**”按钮。
+
+如果一切顺利，你将在控制台中看到两行输出：一行是你准备搜索的关键词，另一行就是从你的Java后端返回的、过滤后的JSON数据！
+
+这标志着你的前端和后端已经成功地进行了第一次有意义的对话。下一步，就是把这些静静躺在控制台里的数据，真正地展示给用户看。 

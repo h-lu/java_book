@@ -1,0 +1,157 @@
+project:
+  type: book
+  title: "Java全栈工程师之路：AI协同与企业级项目实战"
+  output-dir: docs
+
+book:
+  title: "Java全栈工程师之路：AI协同与企业级项目实战"
+  subtitle: "从编程新手到企业级开发者的完整进阶之路"
+  author: "陆海波 - 上海应用技术大学 经济与管理学院"
+  date: "2025-06-09"
+  sidebar:
+    collapse-level: 1
+  
+  chapters:
+    - index.qmd
+    
+    - part: "第一部分：Java基础核心"
+      chapters:
+        - chapters/part1-intro.qmd
+        # 第1章
+        - chapters/01-intro/index.qmd
+        - chapters/01-intro/01-task.qmd
+        - chapters/01-intro/02-setup.qmd
+        - chapters/01-intro/03-hello-world.qmd
+        - chapters/01-intro/04-static-typing.qmd
+        - chapters/01-intro/05-summary.qmd
+        # 第2章
+        - chapters/02-oop/index.qmd
+        - chapters/02-oop/01-class-object.qmd
+        - chapters/02-oop/02-encapsulation.qmd
+        - chapters/02-oop/03-constructor.qmd
+        - chapters/02-oop/04-methods.qmd
+        - chapters/02-oop/05-summary.qmd
+        # 第3章
+        - chapters/03-control/index.qmd
+        - chapters/03-control/01-task.qmd
+        - chapters/03-control/02-if-else.qmd
+        - chapters/03-control/03-while-loop.qmd
+        - chapters/03-control/04-random.qmd
+        - chapters/03-control/05-summary.qmd
+        # 第4章
+        - chapters/04-data/index.qmd
+        - chapters/04-data/01-the-challenge.qmd
+        - chapters/04-data/02-arraylist.qmd
+        - chapters/04-data/03-managing-data.qmd
+        - chapters/04-data/04-summary.qmd
+        # 第5章
+        - chapters/05-io/index.qmd
+        - chapters/05-io/01-the-problem-of-amnesia.qmd
+        - chapters/05-io/02-writing-to-a-file.qmd
+        - chapters/05-io/03-reading-from-a-file.qmd
+        - chapters/05-io/04-handling-errors.qmd
+        - chapters/05-io/05-summary.qmd
+        # 第6章
+        - chapters/06-concurrency/index.qmd
+        - chapters/06-concurrency/01-the-need-for-speed.qmd
+        - chapters/06-concurrency/02-threads-and-runnable.qmd
+        - chapters/06-concurrency/03-summary.qmd
+        # 总结
+        - chapters/part1-summary.qmd
+    
+    - part: "第二部分：企业级项目实战"
+      chapters:
+        - chapters/part2-intro.qmd
+        # 第7章
+        - chapters/07-onboarding/index.qmd
+        - chapters/07-onboarding/01-project-kickoff.qmd
+        - chapters/07-onboarding/02-git-collaboration.qmd
+        - chapters/07-onboarding/03-maven-build.qmd
+        - chapters/07-onboarding/04-summary.qmd
+        # 第8章
+        - chapters/08-backend/index.qmd
+        - chapters/08-backend/01-spring-boot-intro.qmd
+        - chapters/08-backend/02-first-api.qmd
+        - chapters/08-backend/03-first-crud-api.qmd
+        - chapters/08-backend/04-summary.qmd
+        # 第9章
+        - chapters/09-database/index.qmd
+        - chapters/09-database/01-h2-database.qmd
+        - chapters/09-database/02-jpa-entity.qmd
+        - chapters/09-database/03-jpa-repository.qmd
+        - chapters/09-database/04-refactor-to-jpa.qmd
+        - chapters/09-database/05-summary.qmd
+        # 第10章
+        - chapters/10-frontend/index.qmd
+        - chapters/10-frontend/01-html-basics.qmd
+        - chapters/10-frontend/02-js-fetch.qmd
+        - chapters/10-frontend/03-dom-manipulation.qmd
+        - chapters/10-frontend/04-summary.qmd
+        # 第11章
+        - chapters/11-deployment/index.qmd
+        - chapters/11-deployment/01-packaging-jar.qmd
+        - chapters/11-deployment/02-spring-security.qmd
+        - chapters/11-deployment/03-docker.qmd
+        - chapters/11-deployment/04-summary.qmd
+        # 第12章
+        - chapters/12-ai-engine/index.qmd
+        - chapters/12-ai-engine/01-service-layer.qmd
+        - chapters/12-ai-engine/02-recommendation-logic.qmd
+        - chapters/12-ai-engine/03-exposing-the-api.qmd
+        - chapters/12-ai-engine/04-summary.qmd
+        # 总结
+        - chapters/part2-summary.qmd
+
+    - part: "第三部分：职业发展与展望"
+      chapters:
+        # 第13章
+        - chapters/13-career/index.qmd
+        - chapters/13-career/01-project-summary.qmd
+        - chapters/13-career/02-next-steps.qmd
+        - chapters/13-career/03-career-path.qmd
+        - chapters/13-career/04-final-words.qmd
+
+    - part: "附录"
+      chapters:
+        - appendices/references.qmd
+
+lang: zh
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    number-depth: 2
+    code-fold: false
+    code-tools: true
+    code-copy: true
+    highlight-style: github
+    fig-width: 8
+    fig-height: 6
+    mermaid:
+      theme: default
+    
+  # pdf:
+  #   documentclass: book
+  #   toc: true
+  #   number-sections: true
+  #   colorlinks: true
+  #   engine: xelatex
+  #   mainfont: "PingFang SC"
+  #   sansfont: "PingFang SC"
+  #   monofont: "Menlo"
+  #   include-in-header:
+  #     text: |
+  #       \usepackage{xeCJK}
+  #       \setCJKmainfont{PingFang SC}
+  #       \setCJKsansfont{PingFang SC}
+  #       \setCJKmonofont{Menlo}
+
+execute:
+  freeze: auto
+  echo: true
+  warning: false
+  error: false 

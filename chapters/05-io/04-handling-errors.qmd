@@ -1,0 +1,103 @@
+## 5.4 进阶：优雅地处理“意外”与资源 {#sec-io-exceptions}
+
+> “期待最好的，但为最坏的做准备。” —— 这正是异常处理的核心思想。
+
+在之前的两节中，Java的“受检异常”机制已经“逼”着我们使用了两次`try-catch`。现在，是时候深入探究这个机制，并学习一种更优雅、更健壮的代码写法了。
+
+让我们再次审视之前的代码，并思考一个尖锐的问题：
+
+```java
+try {
+    FileWriter writer = new FileWriter("diary.txt", true);
+    writer.write("今天天气很好。\n"); // <-- 如果在这里发生异常...
+    writer.close(); // <-- ...这行代码还会被执行吗？
+} catch (IOException e) {
+    // ...程序会直接跳转到这里
+}
+```
+
+答案是：**不会！**
+
+如果`writer.write()`这行代码抛出了异常，程序会立刻中断`try`块的执行，直接跳转到`catch`块。这意味着`writer.close()`方法被**完全跳过**了。
+
+这会造成一个潜在的严重问题：**资源泄漏**。我们打开了通向文件的“水管”(`FileWriter`)，但没有把它关上。在小程序中可能问题不大，但在大型服务器应用中，持续的资源泄漏最终会导致整个系统崩溃。
+
+::: {.callout-note title="与AI的对话：从 `finally` 到 `try-with-resources`"}
+
+**你**：AI，我发现如果`try`块中间出了问题，最后的`.close()`方法就执行不到了。这看起来很危险，我该怎么确保文件流无论如何都能被关闭呢？
+
+**AI助手**：你提出了一个专家级的问题！这触及了异常处理中非常核心的一环：**资源清理**。为了解决这个问题，Java提供了一个关键字：`finally`。`finally`代码块里的内容，有一个强大的保证：**无论`try`块是正常执行完毕，还是中途因异常退出，`finally`块里的代码最后一定会被执行。**
+
+**你**：太好了！那我把`.close()`放进`finally`里就行了吧？
+
+**AI助手**：是的，这是一种传统的解决方案。但代码会变得有些复杂，因为`.close()`自己也可能抛出`IOException`，所以你不得不在`finally`里再嵌套一个`try-catch`。就像这样：
+
+```java
+// 传统的、复杂的写法
+FileWriter writer = null; // 必须在try外部声明
+try {
+    writer = new FileWriter("diary.txt", true);
+    writer.write("...");
+} catch (IOException e) {
+    e.printStackTrace();
+} finally {
+    if (writer != null) {
+        try {
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+**你**：天哪，这太丑陋了！就没有更简单的办法吗？
+
+**AI助手**：你说得完全正确！正因为这种写法太复杂、太容易出错，所以从Java 7开始，引入了一个极其优雅的解决方案，叫做 **`try-with-resources` 语句**。它被认为是处理外部资源的**最佳实践**。
+
+它的写法非常简洁：
+
+```java
+// 现代的、推荐的写法
+try (FileWriter writer = new FileWriter("diary.txt", true)) {
+    // 把需要被自动关闭的资源，写在try后面的括号里
+    writer.write("这真是太优雅了！\n");
+} catch (IOException e) {
+    // 异常处理逻辑不变
+    e.printStackTrace();
+}
+// 不需要finally，也不需要手动调用.close()！
+```
+当程序离开`try`块时（无论是正常结束还是发生异常），Java会自动帮你调用`writer.close()`方法。干净、安全、易读。
+
+:::
+
+### 核心概念：`try-with-resources`
+
+`try-with-resources` 语句是Java I/O编程的现代化基石。
+
+*   **适用对象**：它适用于任何实现了`java.lang.AutoCloseable`接口的类的实例。所有与文件、网络、数据库连接相关的“流”对象，基本上都实现了这个接口。
+*   **工作原理**：你只需要在`try`关键字后面的圆括号`( )`中创建你的资源对象（比如`FileWriter`或`Scanner`）。Java编译器会在编译时，自动为你生成所有必要的`finally`逻辑来确保`.close()`方法被调用。
+*   **好处**：它彻底消除了忘记关闭资源而导致泄漏的风险，并让代码变得更加简洁、可读。
+
+从今以后，当你需要处理任何外部资源时，**请优先使用 `try-with-resources` 语句**。
+
+### 动手实践
+
+现在，用你学到的这个“最佳实践”来升级你的“电子日记本”程序。
+
+**目标**：
+将`MyDiary.java`中所有文件操作的部分，全部重构为使用`try-with-resources`语句。
+
+**与AI协同的步骤**：
+
+1.  **重构写入部分**：
+    *   找到你程序中处理写入的`try-catch`块。
+    *   向AI提问：“请帮我把这段使用`FileWriter`的代码，重构为使用`try-with-resources`的形式。”
+    *   观察AI是如何将`new FileWriter(...)`移动到`try`后面的括号里的，并删除了手动的`.close()`调用。
+2.  **重构读取部分**：
+    *   找到处理读取的`try-catch`块。
+    *   向AI提问：“请用同样的方式，帮我把这段使用`Scanner`读取文件的代码，也重构为`try-with-resources`。”
+3.  **验证**：再次运行你的程序，确保它的功能和以前完全一样。代码虽然变了，但程序的行为不应有任何改变。
+
+完成了这次重构，你的代码不仅功能正确，而且在风格和健壮性上，都达到了现代企业级Java开发的要求。 
